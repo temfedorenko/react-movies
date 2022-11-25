@@ -7,22 +7,39 @@ export const NewMovie = ({ onAdd }) => {
   const [imgUrl, setImgUrl] = useState("");
   const [imdbUrl, setImdbUrl] = useState("");
   const [imdbId, setImdbId] = useState("");
+  // validation
+  const [validationMessageTitle, setValidationMessageTitle] = useState("");
+  const [validationMessageImage, setValidationMessageImage] = useState("");
+  const [validationMessageImdbUrl, setValidationMessageImdbUrl] = useState("");
+  const [validationMessageImdbId, setValidationMessageImdbId] = useState("");
 
-  const onChangeTitle = (e) => {
-    setTitle(e.target.value);
+  const [regex] = useState(
+    /^((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)$/
+  );
+
+  const onChangeInput = (e, input) => {
+    switch (input) {
+      case "title":
+        setTitle(e.target.value);
+        break;
+      case "description":
+        setDescriptoion(e.target.value);
+        break;
+      case "imgUrl":
+        setImgUrl(e.target.value);
+        break;
+      case "imdbUrl":
+        setImdbUrl(e.target.value);
+        break;
+      case "imdbId":
+        setImdbId(e.target.value);
+        break;
+      default:
+        return;
+    }
   };
-  const onChangeDescription = (e) => {
-    setDescriptoion(e.target.value);
-  };
-  const onChangeImgUrl = (e) => {
-    setImgUrl(e.target.value);
-  };
-  const onChangeImdbUrl = (e) => {
-    setImdbUrl(e.target.value);
-  };
-  const onChangeImdbId = (e) => {
-    setImdbId(e.target.value);
-  };
+
+  const areInputsFilled = title && imdbUrl && imgUrl && imdbId;
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -37,10 +54,51 @@ export const NewMovie = ({ onAdd }) => {
     };
 
     onAdd(newMovie);
-    console.log(newMovie);
 
-    //  setTitle("");
-    //  setDescriptoion("");
+    setTitle("");
+    setDescriptoion("");
+    setImdbId("");
+    setImgUrl("");
+    setImdbUrl("");
+  };
+
+  const validateRequiredInput = (e, input) => {
+    const message = "This input is required";
+
+    if (e.target.value.length === 0) {
+      switch (input) {
+        case "title":
+          setValidationMessageTitle(message);
+          break;
+        case "imgUrl":
+          setValidationMessageImage(message);
+          break;
+        case "imdbUrl":
+          setValidationMessageImdbUrl(message);
+          break;
+        case "imdbId":
+          setValidationMessageImdbId(message);
+          break;
+        default:
+          return;
+      }
+    }
+  };
+
+  const checkUrl = (e, input) => {
+    const message = "Please, enter the correct url";
+
+    if (e.target.value && input === "imgUrl") {
+      if (!regex.test(e.target.value)) {
+        setValidationMessageImage(message);
+      }
+    }
+
+    if (e.target.value && input === "imdbUrl") {
+      if (!regex.test(e.target.value)) {
+        setValidationMessageImdbUrl(message);
+      }
+    }
   };
 
   return (
@@ -54,8 +112,12 @@ export const NewMovie = ({ onAdd }) => {
             type="text"
             placeholder="Enter the title of the movie"
             value={title}
-            onChange={onChangeTitle}
+            onChange={(e) => onChangeInput(e, "title")}
+            onBlur={(e) => validateRequiredInput(e, "title")}
+            onFocus={() => setValidationMessageTitle("")}
+            style={validationMessageTitle ? { border: "1px solid red" } : null}
           />
+          {validationMessageTitle ? validationMessageTitle : null}
         </div>
       </div>
       <div className="field">
@@ -66,7 +128,7 @@ export const NewMovie = ({ onAdd }) => {
             type="text"
             placeholder="Enter the description of the movie"
             value={description}
-            onChange={onChangeDescription}
+            onChange={(e) => onChangeInput(e, "description")}
           />
         </div>
       </div>
@@ -78,8 +140,15 @@ export const NewMovie = ({ onAdd }) => {
             type="text"
             placeholder="Enter an image url"
             value={imgUrl}
-            onChange={onChangeImgUrl}
+            onChange={(e) => onChangeInput(e, "imgUrl")}
+            onBlur={(e) => {
+              validateRequiredInput(e, "imgUrl");
+              checkUrl(e, "imgUrl");
+            }}
+            onFocus={() => setValidationMessageImage("")}
+            style={validationMessageImage ? { border: "1px solid red" } : null}
           />
+          {validationMessageImage ? validationMessageImage : null}
         </div>
       </div>
       <div className="field">
@@ -90,8 +159,17 @@ export const NewMovie = ({ onAdd }) => {
             type="text"
             placeholder="Enter an imdb url"
             value={imdbUrl}
-            onChange={onChangeImdbUrl}
+            onChange={(e) => onChangeInput(e, "imdbUrl")}
+            onBlur={(e) => {
+              validateRequiredInput(e, "imdbUrl");
+              checkUrl(e, "imdbUrl");
+            }}
+            onFocus={() => setValidationMessageImdbUrl("")}
+            style={
+              validationMessageImdbUrl ? { border: "1px solid red" } : null
+            }
           />
+          {validationMessageImdbUrl ? validationMessageImdbUrl : null}
         </div>
       </div>
       <div className="field">
@@ -102,12 +180,27 @@ export const NewMovie = ({ onAdd }) => {
             type="text"
             placeholder="Enter an imbd id"
             value={imdbId}
-            onChange={onChangeImdbId}
+            onChange={(e) => onChangeInput(e, "imdbId")}
+            onBlur={(e) => validateRequiredInput(e, "imdbId")}
+            onFocus={() => setValidationMessageImdbId("")}
+            style={validationMessageImdbId ? { border: "1px solid red" } : null}
           />
+          {validationMessageImdbId ? validationMessageImdbId : null}
         </div>
       </div>
       <div className="control">
-        <button className="button is-link">Add movie</button>
+        <button
+          className="button is-link"
+          disabled={
+            !(
+              areInputsFilled &&
+              !validationMessageImdbUrl &&
+              !validationMessageImage
+            )
+          }
+        >
+          Add movie
+        </button>
       </div>
     </form>
   );
